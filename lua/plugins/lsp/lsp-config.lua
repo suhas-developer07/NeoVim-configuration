@@ -7,7 +7,7 @@ return {
     { "folke/neodev.nvim", opts = {} },
     {
       "williamboman/mason.nvim",
-      build = ":MasonUpdate", -- keep registry up to date
+      build = ":MasonUpdate", -- keep registry updated
     },
     {
       "williamboman/mason-lspconfig.nvim",
@@ -18,8 +18,9 @@ return {
     local lspconfig = require("lspconfig")
     local mason_lspconfig = require("mason-lspconfig")
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
-
     local keymap = vim.keymap
+
+    -- capabilities for autocompletion
     local capabilities = cmp_nvim_lsp.default_capabilities()
 
     -- diagnostic signs
@@ -29,7 +30,7 @@ return {
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
 
-    -- keymaps on LSP attach
+    -- LSP keymaps when attached
     vim.api.nvim_create_autocmd("LspAttach", {
       group = vim.api.nvim_create_augroup("UserLspConfig", {}),
       callback = function(ev)
@@ -50,48 +51,76 @@ return {
       end,
     })
 
-    -- ensure some servers are installed
+    -- Ensure some servers are installed
     mason_lspconfig.setup({
       ensure_installed = { "gopls", "html", "lua_ls", "emmet_ls", "graphql", "templ" },
     })
 
-    -- use setup_handlers (safe since version=* guarantees latest)
-    mason_lspconfig.setup_handlers({
-      function(server_name)
-        lspconfig[server_name].setup({
-          capabilities = capabilities,
-        })
-      end,
-      ["graphql"] = function()
-        lspconfig["graphql"].setup({
-          capabilities = capabilities,
-          filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
-        })
-      end,
-      ["emmet_ls"] = function()
-        lspconfig["emmet_ls"].setup({
-          capabilities = capabilities,
-          filetypes = { "html", "templ", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
-        })
-      end,
-      ["html"] = function()
-        lspconfig["html"].setup({
-          capabilities = capabilities,
-          filetypes = { "html", "templ" },
-        })
-      end,
-      ["lua_ls"] = function()
-        lspconfig["lua_ls"].setup({
-          capabilities = capabilities,
-          settings = {
+    -- Use setup_handlers if available (new versions), otherwise fallback
+    if mason_lspconfig.setup_handlers then
+      mason_lspconfig.setup_handlers({
+        -- Default handler
+        function(server_name)
+          lspconfig[server_name].setup({
+            capabilities = capabilities,
+          })
+        end,
+
+        -- Custom configs
+        ["graphql"] = function()
+          lspconfig["graphql"].setup({
+            capabilities = capabilities,
+            filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
+          })
+        end,
+        ["emmet_ls"] = function()
+          lspconfig["emmet_ls"].setup({
+            capabilities = capabilities,
+            filetypes = { "html", "templ", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
+          })
+        end,
+        ["html"] = function()
+          lspconfig["html"].setup({
+            capabilities = capabilities,
+            filetypes = { "html", "templ" },
+          })
+        end,
+        ["lua_ls"] = function()
+          lspconfig["lua_ls"].setup({
+            capabilities = capabilities,
+            settings = {
+              Lua = {
+                diagnostics = { globals = { "vim" } },
+                completion = { callSnippet = "Replace" },
+              },
+            },
+          })
+        end,
+      })
+    else
+      -- Fallback: older mason-lspconfig without setup_handlers
+      for _, server_name in ipairs(mason_lspconfig.get_installed_servers()) do
+        local opts = { capabilities = capabilities }
+
+        if server_name == "graphql" then
+          opts.filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" }
+        elseif server_name == "emmet_ls" then
+          opts.filetypes = { "html", "templ", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" }
+        elseif server_name == "html" then
+          opts.filetypes = { "html", "templ" }
+        elseif server_name == "lua_ls" then
+          opts.settings = {
             Lua = {
               diagnostics = { globals = { "vim" } },
               completion = { callSnippet = "Replace" },
             },
-          },
-        })
-      end,
-    })
+          }
+        end
+
+        lspconfig[server_name].setup(opts)
+      end
+    end
   end,
 }
+
 
