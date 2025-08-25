@@ -40,7 +40,6 @@ return {
 				"gopls",
 				"bufls",
 				"emmet_ls",
-                "volar",
 				"prismals",
 				"pyright",
 				"templ",
@@ -53,12 +52,8 @@ return {
 			ensure_installed = {
 				"prettier", -- prettier formatter
 				"stylua", -- lua formatter
-				"isort", -- python formatter
-				"black", -- python formatter
-				"debugpy", -- python debugger
 				"golines", -- go formatter
 				"templ",
-				"pylint", -- python linter
 				"eslint_d", -- js linter
 			},
 		})
