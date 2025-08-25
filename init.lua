@@ -16,6 +16,9 @@ end
 
 vim.opt.rtp:prepend(lazypath)
 
+vim.keymap.set("v","<C-c>",'"+y')
+vim.keymap.set("n","<C-v>",'"+p')
+
 require("vim-options")
 
 -- Setup lazy.nvim
