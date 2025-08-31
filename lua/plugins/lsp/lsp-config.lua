@@ -3,7 +3,7 @@ return {
 	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
 		"hrsh7th/cmp-nvim-lsp",
-		{ "antosha417/nvim-lsp-file-operations", config = true },
+		{ "antosha417/nvim-lsp-file-operations", config = true },  -- ✅ FIXED: antosha417 (not 418)
 		{ "folke/neodev.nvim", opts = {} },
 		{
 			"williamboman/mason.nvim",
@@ -29,6 +29,19 @@ return {
 			local hl = "DiagnosticSign" .. type
 			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
 		end
+        
+		-- Enable diagnostics
+		vim.diagnostic.config({
+			virtual_text = true,  -- Show error messages inline
+			signs = true,         -- Show signs in gutter
+			underline = true,     -- Underline errors
+			update_in_insert = false,
+			severity_sort = true,
+			float = {
+				border = "rounded",
+				source = "always",
+			},
+		})
 
 		-- LSP keymaps when attached
 		vim.api.nvim_create_autocmd("LspAttach", {
